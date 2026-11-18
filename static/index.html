@@ -1,0 +1,509 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>متابعة القضايا</title>
+<link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#1f4e8c"><link rel="apple-touch-icon" href="/icons/icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes">
+<style>
+:root{--bg:#f3f5f9;--card:#fff;--ink:#1b2333;--mute:#6a7488;--line:#e2e6ee;--brand:#1f4e8c;--brand2:#e8f0fb;--ok:#1e8e5a;--okbg:#e4f5ec;--warn:#b57a00;--warnbg:#fff3d1;--bad:#c62f3a;--badbg:#fde7e9}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Segoe UI",Tahoma,Arial,sans-serif}
+header{background:var(--brand);color:#fff;padding:10px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{margin:0;font-size:20px;flex:1}
+header button{background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.35)}
+header button:hover{background:rgba(255,255,255,.28)}
+nav{display:flex;gap:4px;padding:10px 20px 0;border-bottom:1px solid var(--line);background:var(--card);overflow-x:auto}
+nav a{padding:9px 18px;cursor:pointer;border-radius:8px 8px 0 0;color:var(--mute);font-weight:600;white-space:nowrap}
+nav a.on{background:var(--bg);color:var(--brand);box-shadow:inset 0 -3px 0 var(--brand)}
+main{padding:18px 20px;max-width:1300px;margin:auto}
+button{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--card);padding:7px 14px;border-radius:8px;color:var(--ink)}
+button:hover{background:var(--brand2)}
+button.pri{background:var(--brand);color:#fff;border-color:var(--brand)}
+button.pri:hover{background:#17407a}
+button.dng{color:var(--bad)}
+.bar{display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+.bar input,.bar select{padding:7px 12px;border:1px solid var(--line);border-radius:8px;font:inherit;background:var(--card);color:var(--ink)}
+.bar input[type=search]{flex:1;min-width:180px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:auto}
+table{border-collapse:collapse;width:100%}
+th{background:#f7f9fc;color:var(--mute);font-size:13px;text-align:right;padding:10px 12px;position:sticky;top:0;white-space:nowrap}
+td{padding:9px 12px;border-top:1px solid var(--line);vertical-align:middle}
+tr:hover td{background:#fafcff}
+tr.done td{color:#9aa3b5}
+tr.past td{color:#9aa3b5}
+tr.bad td:first-child{box-shadow:inset -4px 0 var(--bad)}
+tr.warn td:first-child{box-shadow:inset -4px 0 #e0a100}
+td.act{white-space:nowrap;text-align:left}
+td.act button{padding:3px 9px;margin-inline-start:4px}
+a.lnk{color:var(--brand);cursor:pointer;font-weight:600}
+.b{display:inline-block;padding:2px 10px;border-radius:99px;font-size:13px;font-weight:600;white-space:nowrap}
+.b.ok{background:var(--okbg);color:var(--ok)}.b.warn{background:var(--warnbg);color:var(--warn)}
+.b.bad{background:var(--badbg);color:var(--bad)}.b.gray{background:#eceff4;color:var(--mute)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:16px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.stat b{display:block;font-size:30px;color:var(--brand)}.stat span{color:var(--mute);font-size:13px}
+.stat.bad b{color:var(--bad)}
+.sec{margin-bottom:16px;max-height:60vh}
+.cnt{background:var(--brand2);color:var(--brand);border-radius:99px;padding:1px 10px;font-size:13px;margin-inline-start:6px}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:16px}
+.card h3{margin:0;padding:12px 16px;font-size:16px;border-bottom:1px solid var(--line)}
+.empty{padding:24px;text-align:center;color:var(--mute)}
+dialog{border:none;border-radius:14px;padding:0;width:min(560px,94vw);box-shadow:0 20px 60px rgba(0,0,0,.3);color:var(--ink)}
+dialog::backdrop{background:rgba(20,30,50,.45)}
+dialog h2{margin:0;padding:14px 20px;font-size:18px;background:var(--brand2);color:var(--brand)}
+.body{padding:16px 20px;display:grid;gap:12px;max-height:70vh;overflow:auto}
+.body label{display:grid;gap:4px;font-size:13px;color:var(--mute);font-weight:600}
+.body input,.body select,.body textarea{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:8px;color:var(--ink);background:#fff;width:100%}
+.foot{padding:12px 20px;display:flex;gap:8px;justify-content:flex-start;border-top:1px solid var(--line)}
+.err{color:var(--bad);font-size:13px;margin-inline-end:auto}
+#toast{position:fixed;bottom:20px;left:20px;background:#1b2333;color:#fff;padding:10px 18px;border-radius:10px;opacity:0;transition:.25s;pointer-events:none}
+#toast.on{opacity:1}
+@media print{header,nav,.bar,td.act,th:last-child{display:none}}
+.rc{margin:12px 0}.rc td{padding:10px 12px}.rc td.lbl{color:var(--mute);font-weight:600;width:35%;background:#f7f9fc}
+@media print{body.pr header,body.pr nav,body.pr main,body.pr #toast{display:none}body.pr dialog{position:static;width:100%!important;box-shadow:none;margin:0}body.pr dialog .foot,body.pr dialog .np{display:none}body.pr .body{max-height:none;overflow:visible}body.pr th:last-child{display:table-cell}}
+body:not(.is-admin) .adm,body:not(.is-admin) .accw,body:not(.is-admin) .bar.np,body:not(.is-admin) .dng{display:none!important}
+th.srt{cursor:pointer;user-select:none}th.srt:hover{text-decoration:underline}
+@media print{.stmt{page-break-after:always}.stmt:last-child{page-break-after:auto}}
+.sch.hid{display:none}
+body.pr .sch{display:none!important}
+</style>
+</head>
+<body>
+<header>
+  <h1>⚖️ متابعة القضايا والمهام والحسابات</h1>
+  <button class="adm" onclick="$('#file').click()">استيراد Excel (قضايا / مهام)</button>
+  <button class="adm" onclick="location='/api/export'">تصدير Excel</button>
+  <button class="adm" onclick="doBackup()">نسخة احتياطية</button><button class="adm" onclick="restoreDlg()">♻️ استعادة نسخة</button>
+  <span id="who" style="opacity:.9"></span><button onclick="notifBtn()">🔔 الإشعارات</button><button class="adm" onclick="usersDlg()">👥 المستخدمون</button>
+  <button onclick="window.print()">طباعة</button><button onclick="logout()">خروج</button>
+  <input type="file" id="file" accept=".xlsx" hidden onchange="doImport(this)">
+</header>
+<nav id="nav"></nav>
+<main id="main"></main>
+<dialog id="dlg"></dialog>
+<div id="toast"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt = iso => iso ? iso.split('-').reverse().join('/') : '';
+const TABS = [['dashboard','الرئيسية'],['cases','القضايا'],['sessions','الجلسات'],['tasks','المهام والمواعيد'],['accounts','الحسابات']];
+let S, CASES = [], DATA = {}, TAB = 'dashboard', FILTER = {q:'', sess:'up', task:'open', ttype:'', lawyer:''};
+
+async function api(url, method='GET', body) {
+  const r = await fetch(url, {method, headers: Object.assign({'X-Requested-With':'law'}, body ? {'Content-Type':'application/json'} : {}), body: body ? JSON.stringify(body) : undefined});
+  const j = await r.json().catch(() => ({}));
+  if (r.status === 401) { location = '/login'; throw new Error('يلزم تسجيل الدخول'); }
+  if (!r.ok) throw new Error(j.error || 'حدث خطأ');
+  return j;
+}
+function toast(t) { const e = $('#toast'); e.textContent = t; e.classList.add('on'); setTimeout(() => e.classList.remove('on'), 2600); }
+
+function daysBadge(n, kind, lv) {
+  if (n == null) return '';
+  const t = n < 0 ? (kind === 's' ? 'انقضت' : `متأخر ${-n} يوم`) : n === 0 ? 'اليوم' : n === 1 ? 'غداً' : `${n} يوم`;
+  const c = n < 0 ? (kind === 's' ? 'gray' : 'bad') : n <= S.meta.warn_days ? 'warn' : 'ok';
+  return `<span class="b ${c}">${t}</span>`;
+}
+function cell(c, r, tab) {
+  const v = r[c.k];
+  if (c.t === 'date') return fmt(v) + (c.k === 'deadline' && r.deadline_auto ? ' <small style="color:var(--mute)">(جلسة)</small>' : '');
+  if (c.t === 'sdays') return daysBadge(v, 's');
+  if (c.t === 'tdays') return daysBadge(v, 't');
+  if (c.k === 'status') return `<span class="b ${v === S.meta.done ? 'ok' : v === 'مؤجل' ? 'gray' : 'warn'}">${esc(v)}</span>`;
+  if (c.k === 'client' && tab !== 'cases') return `<a class="lnk" onclick="caseDetail(${r.case_id})">${esc(v)}</a>`;
+  if (c.k === 'client') return `<a class="lnk" onclick="caseDetail(${r.id})">${esc(v)}</a>`;
+  return esc(v);
+}
+function tableHTML(tab, rows, actions = true, cols = S[tab].cols, sortable = false) {
+  if (!CAN.write) actions = false;
+  if (!rows.length) return '<div class="empty">لا يوجد شيء مطلوب ✓</div>';
+  const act = r => actions === true
+    ? `${tab === 'tasks' && r.status !== S.meta.done ? `<button title="تم الإنجاز" onclick="markDone(${r.id})">✔</button>` : ''}<button title="تعديل" onclick="openForm('${tab}',${r.id})">✏️</button>${CAN.del ? `<button class="dng" title="حذف" onclick="del('${tab}',${r.id})">🗑</button>` : ''}`
+    : actions === 'dash' && tab === 'tasks' ? `<button title="تم الإنجاز" onclick="markDone(${r.id})">✔ تم</button>` : '';
+  return `<table><thead><tr>${cols.map(c => sortable ? `<th class="srt" title="اضغط للترتيب" onclick="sortBy('${c.k}')">${c.l}${SORT[tab] && SORT[tab].k === c.k ? (SORT[tab].dir > 0 ? ' ▲' : ' ▼') : ''}</th>` : `<th>${c.l}</th>`).join('')}${actions ? '<th></th>' : ''}</tr></thead><tbody>` +
+    rows.map(r => `<tr class="${r.lv || ''}">${cols.map(c => `<td>${cell(c, r, tab)}</td>`).join('')}${actions ? `<td class="act">${act(r)}</td>` : ''}</tr>`).join('') + '</tbody></table>';
+}
+
+function renderNav() {
+  $('#nav').innerHTML = TABS.map(([k, l]) => `<a class="${k === TAB ? 'on' : ''}" onclick="go('${k}')">${l}</a>`).join('');
+}
+async function go(t) { TAB = t; FILTER.q = ''; await render(); }
+
+async function render() {
+  renderNav();
+  const m = $('#main');
+  if (TAB === 'accounts') { await renderAccounts(); return; }
+  if (TAB === 'dashboard') {
+    const d = await api('/api/dashboard');
+    const at = CAN.admin ? await api('/api/acc/totals') : null;
+    m.innerHTML = (at ? accStats(at, true) : '') + S.dash.map(sec => `<div class="card sec"><h3>${sec.title} <span class="cnt">${d[sec.key].length}</span></h3>${tableHTML(sec.table, d[sec.key], 'dash', sec.cols)}</div>`).join('');
+    return;
+  }
+  DATA[TAB] = await api('/api/' + TAB);
+  CASES = await api('/api/cases-list');
+  const extra = TAB === 'sessions'
+    ? `<select onchange="FILTER.sess=this.value;draw()"><option value="up" ${FILTER.sess==='up'?'selected':''}>الجلسات القادمة</option><option value="all" ${FILTER.sess==='all'?'selected':''}>كل الجلسات</option></select>`
+    : TAB === 'tasks'
+    ? `<select onchange="FILTER.task=this.value;draw()"><option value="open" ${FILTER.task==='open'?'selected':''}>المفتوحة</option><option value="all" ${FILTER.task==='all'?'selected':''}>الكل</option><option value="done" ${FILTER.task==='done'?'selected':''}>المنجزة</option></select>
+       <select onchange="FILTER.ttype=this.value;draw()"><option value="">كل الأنواع</option>${S.tasks.fields.find(f=>f.k==='type').choices.map(c=>`<option ${FILTER.ttype===c?'selected':''}>${c}</option>`).join('')}</select>
+       <select id="sortsel" onchange="setSort(this.value)" title="ترتيب"><option value="">الترتيب: الافتراضي</option>${[['days_left','المتبقي (الأقرب أولاً)'],['type','نوع المهمة'],['place','المكان'],['deadline','آخر موعد'],['client','الموكل'],['status','الحالة']].map(([k,l])=>`<option value="${k}" ${SORT.tasks&&SORT.tasks.k===k?'selected':''}>ترتيب حسب ${l}</option>`).join('')}</select>` : '';
+  m.innerHTML = `<div class="bar"><input type="search" id="q" placeholder="بحث..." oninput="FILTER.q=this.value;draw()" value="${esc(FILTER.q)}">${extra}${lawyerSel()}
+    ${CAN.write ? `<button class="pri" onclick="openForm('${TAB}')">+ إضافة ${S[TAB].single}</button>` : ''}</div><div class="card" id="tbl"></div>`;
+  draw();
+}
+// ---------- الترتيب ----------
+const SORT = {};
+function sortRows(rows) {
+  const s = SORT[TAB]; if (!s) return rows;
+  return [...rows].sort((a, b) => {
+    const x = a[s.k], y = b[s.k], nx = x == null || x === '', ny = y == null || y === '';
+    if (nx || ny) return nx && ny ? 0 : nx ? 1 : -1;              // الفارغ دائماً في الآخر
+    const c = s.k === 'days_left' ? Number(x) - Number(y) : String(x).localeCompare(String(y), 'ar', {numeric: true});
+    return s.dir * c;
+  });
+}
+function sortBy(k) { const s = SORT[TAB]; SORT[TAB] = s && s.k === k ? {k, dir: -s.dir} : {k, dir: 1}; syncSort(); draw(); }
+function setSort(k) { if (k) SORT[TAB] = {k, dir: 1}; else delete SORT[TAB]; draw(); }
+function syncSort() { const el = $('#sortsel'); if (el) el.value = SORT[TAB] ? SORT[TAB].k : ''; }
+const lawyerSel = () => ['cases', 'sessions', 'tasks'].includes(TAB)
+  ? `<select onchange="FILTER.lawyer=this.value;draw()" title="المحامي المسؤول"><option value="">كل المحامين</option>${S.cases.fields.find(f => f.k === 'lawyer').choices.map(c => `<option ${FILTER.lawyer === c ? 'selected' : ''}>${esc(c)}</option>`).join('')}<option value="__none" ${FILTER.lawyer === '__none' ? 'selected' : ''}>بدون محامٍ محدد</option></select>` : '';
+function draw() {
+  let rows = DATA[TAB];
+  if (FILTER.lawyer) rows = rows.filter(r => FILTER.lawyer === '__none' ? !r.lawyer : r.lawyer === FILTER.lawyer);
+  if (TAB === 'sessions') {
+    if (FILTER.sess === 'up') rows = rows.filter(r => r.days_left >= 0); else rows = [...rows].reverse();
+  }
+  if (TAB === 'tasks') {
+    if (FILTER.task === 'open') rows = rows.filter(r => r.status !== S.meta.done);
+    if (FILTER.task === 'done') rows = rows.filter(r => r.status === S.meta.done);
+    if (FILTER.ttype) rows = rows.filter(r => r.type === FILTER.ttype);
+  }
+  const q = FILTER.q.trim();
+  if (q) rows = rows.filter(r => Object.values(r).some(v => String(v ?? '').includes(q)));
+  $('#tbl').innerHTML = tableHTML(TAB, sortRows(rows), true, S[TAB].cols, true);
+}
+
+// ---------- النماذج ----------
+function openForm(tab, id, preset = {}) {
+  const sch = S[tab], row = id ? DATA[tab].find(r => r.id === id) : preset;
+  const val = f => row[f.k] ?? (f.k === 'status' ? 'قيد التنفيذ' : '');
+  const fld = f => {
+    const v = val(f), n = `name="${f.k}"`;
+    let inp;
+    if (f.t === 'choice') inp = `<select ${n}><option value=""></option>${(f.choices||[]).map(c => `<option ${c===v?'selected':''}>${esc(c)}</option>`).join('')}</select>`;
+    else if (f.t === 'case') inp = `<select ${n}><option value=""></option>${CASES.map(c => `<option value="${c.id}" ${c.id==v?'selected':''}>${esc(c.label)}</option>`).join('')}</select>`;
+    else if (f.t === 'date') inp = `<input type="date" ${n} value="${esc(v)}">`;
+    else if (f.t === 'int') inp = `<input type="number" ${n} value="${esc(v)}">`;
+    else if (f.t === 'combo') inp = `<input ${n} list="cats" value="${esc(v)}"><datalist id="cats"></datalist>`;
+    else if (f.t === 'area') inp = `<textarea ${n} rows="3">${esc(v)}</textarea>`;
+    else inp = `<input ${n} value="${esc(v)}">`;
+    return `<label ${f.only ? `data-only="${f.only}"` : ''}>${f.l}${f.req ? ' *' : ''}${inp}</label>`;
+  };
+  const d = $('#dlg');
+  d.innerHTML = `<form method="dialog"><h2>${id ? 'تعديل' : 'إضافة'} ${sch.single}</h2><div class="body">${sch.fields.map(fld).join('')}</div>
+    <div class="foot"><button type="button" class="pri" id="save">حفظ</button><button type="button" onclick="$('#dlg').close()">إلغاء</button><span class="err" id="err"></span></div></form>`;
+  const f = d.querySelector('form');
+  if (tab === 'cases') {
+    const upd = () => { $('#cats').innerHTML = (S.classes[f.court.value] || []).map(c => `<option value="${esc(c)}">`).join(''); };
+    f.court.onchange = upd; upd();
+  }
+  if (tab === 'tasks') {
+    let auto = !row.deadline;
+    f.deadline.oninput = () => auto = false;
+    const vis = () => f.querySelectorAll('label[data-only]').forEach(l => l.style.display = l.dataset.only.split(',').includes(f.type.value) ? '' : 'none');
+    const calc = () => {
+      const n = S.meta.deadline_days[f.appeal_kind.value];
+      if (auto && f.type.value === S.meta.appeal && n && f.judgment_date.value) {
+        const dt = new Date(f.judgment_date.value + 'T00:00:00'); dt.setDate(dt.getDate() + n);
+        f.deadline.value = `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+      }
+    };
+    f.type.onchange = () => { vis(); calc(); };
+    f.appeal_kind.onchange = f.judgment_date.onchange = calc;
+    vis();
+  }
+  $('#save').onclick = async () => {
+    const data = Object.fromEntries(new FormData(f));
+    try { id ? await api(`/api/${tab}/${id}`, 'PUT', data) : await api('/api/' + tab, 'POST', data);
+      d.close(); toast('تم الحفظ ✔'); render(); } catch (e) { $('#err').textContent = e.message; }
+  };
+  d.showModal();
+}
+async function del(tab, id) {
+  if (!confirm('هل أنت متأكد من الحذف؟' + (tab === 'cases' ? '\nسيتم حذف جلسات ومهام هذه القضية أيضاً.' : ''))) return;
+  try { await api(`/api/${tab}/${id}`, 'DELETE'); toast('تم الحذف'); render(); } catch (e) { alert(e.message); }
+}
+async function markDone(id) { await api(`/api/tasks/${id}/done`, 'POST', {done: true}); toast('تم تسجيل الإنجاز ✔'); render(); }
+
+async function caseDetail(id) {
+  const [c, ss, tk] = await Promise.all([api('/api/cases'), api('/api/sessions'), api('/api/tasks')]);
+  DATA.cases = c; DATA.sessions = ss; DATA.tasks = tk; CASES = await api('/api/cases-list');
+  const cs = c.find(x => x.id === id); if (!cs) return;
+  const d = $('#dlg');
+  d.style.width = 'min(820px,95vw)';
+  d.innerHTML = `<h2>${esc(cs.code)} — ${esc(cs.client)}</h2><div class="body">
+    <div><b>المحكمة:</b> ${esc(cs.court) || '—'} &nbsp; <b>التصنيف:</b> ${esc(cs.category) || '—'} &nbsp; <b>رقم القضية:</b> ${esc(cs.case_no) || '—'} &nbsp; <b>الهاتف:</b> ${esc(cs.phone) || '—'}</div>
+    <div class="card"><h3>الجلسات</h3>${tableHTML('sessions', ss.filter(r => r.case_id === id), false)}</div>
+    <div class="card"><h3>المهام</h3>${tableHTML('tasks', tk.filter(r => r.case_id === id), false)}</div></div>
+    <div class="foot"><button class="pri" onclick="$('#dlg').close();openForm('sessions',null,{case_id:${id}})">+ جلسة</button>
+    <button class="pri" onclick="$('#dlg').close();openForm('tasks',null,{case_id:${id}})">+ مهمة</button>
+    ${CAN.acc ? `<button onclick="accDetail(${id})">💰 الحسابات</button>` : ''}${CAN.write ? `<button onclick="$('#dlg').close();openForm('cases',${id})">تعديل القضية</button>` : ''}<button onclick="$('#dlg').close()">إغلاق</button></div>`;
+  d.showModal();
+  d.addEventListener('close', () => d.style.width = '', {once: true});
+}
+
+// ---------- تقرير المصروفات القضائية حسب المحامي (للمدير) ----------
+let RPT = null, RMODE = 'lawyer', RSEL = 'all';
+const stmt = g => {
+  const L = RMODE === 'lawyer', due = i => L ? i.lawyer_due : i.client_due, got = i => L ? i.lawyer_paid : i.client_paid;
+  const cases = g.cases.map(cs => ({...cs, items: cs.items.filter(i => due(i) > 0.0005)})).filter(cs => cs.items.length);
+  const sub = cs => cs.items.reduce((a, i) => a + due(i), 0), total = cases.reduce((a, cs) => a + sub(cs), 0);
+  return `<div class="stmt"><div style="text-align:center"><div style="font-size:19px;font-weight:700">${esc(AS.office || 'مكتب المحاماة')}</div><h2 style="background:none;padding:4px 0">بيان المصروفات القضائية غير المسددة</h2><div style="font-size:17px">المحامي المسؤول: <b>${esc(g.label)}</b></div>
+   <div>${L ? 'المستحق للمدير على المحامي (مصروفات سُدِّدت من المكتب ولم يسدّدها المحامي بعد)' : 'المستحق على الموكلين'}</div><div style="color:var(--mute)">تاريخ البيان: ${fmt(todayIso())}</div></div>
+  ${cases.length ? `<table><thead><tr><th>الموكل</th><th>رقم القضية</th><th>البيان</th><th>التاريخ</th><th>المبلغ</th><th>${L ? 'سدّده المحامي' : 'سدّده الموكل'}</th><th>المتبقي</th></tr></thead><tbody>` +
+    cases.map(cs => cs.items.map((it, i) => `<tr>${i === 0 ? `<td rowspan="${cs.items.length}"><b>${esc(cs.client)}</b></td><td rowspan="${cs.items.length}">${esc(cs.case_no)}</td>` : ''}<td>${esc(it.descr)}</td><td>${fmt(it.date)}</td><td>${fm(it.amt)}</td><td>${fm(got(it))}</td><td>${fm(due(it))}</td></tr>`).join('') +
+      (cs.items.length > 1 ? `<tr><td colspan="6"><b>إجمالي ${esc(cs.client)}</b></td><td><b>${fm(sub(cs))}</b></td></tr>` : '')).join('') +
+    `<tr><td colspan="6"><b>الإجمالي — ${esc(g.label)}</b></td><td><b>${money(total)}</b></td></tr></tbody></table>` : '<div class="empty">لا توجد مصروفات قضائية غير مسددة.</div>'}
+  ${L && g.lawyer ? `<div class="np accw" style="margin-top:8px"><button class="pri" onclick="lawyerRemit(${RPT.indexOf(g)})">+ تسجيل دفعة من المحامي</button></div>` : ''}</div>`;
+};
+async function unpaidReport(sel) {
+  if (sel === undefined || !RPT) { RPT = await api('/api/acc/report-unpaid'); AS = await api('/api/acc/settings'); RSEL = 'all'; }
+  else if (sel !== null) RSEL = sel;
+  const list = RSEL === 'all' ? RPT : [RPT[+RSEL]];
+  const dlg = $('#dlg'); dlg.style.width = 'min(900px,95vw)';
+  dlg.innerHTML = `<h2>📋 المصروفات القضائية غير المسددة</h2><div class="body">
+   <div class="bar np" style="padding:10px"><select onchange="RMODE=this.value;unpaidReport(null)"><option value="lawyer" ${RMODE === 'lawyer' ? 'selected' : ''}>ما على المحامي للمدير</option><option value="client" ${RMODE === 'client' ? 'selected' : ''}>ما على الموكلين</option></select>
+   <select onchange="unpaidReport(this.value)"><option value="all">كل المحامين (بيان مستقل لكل محامٍ في صفحة)</option>${RPT.map((g, i) => `<option value="${i}" ${String(RSEL) === String(i) ? 'selected' : ''}>بيان ${esc(g.label)} فقط</option>`).join('')}</select></div>
+   ${list.map(stmt).join('')}</div><div class="foot"><button class="pri" onclick="printDlg()">طباعة</button><button onclick="$('#dlg').close()">إغلاق</button></div>`;
+  if (!dlg.open) { dlg.showModal(); dlg.addEventListener('close', () => dlg.style.width = '', {once: true}); }
+}
+async function lawyerRemit(i) {
+  const g = RPT[i], v = prompt('المبلغ الذي سدّده المحامي ' + g.lawyer + ' للمدير (المستحق الآن: ' + fm(g.lawyer_total) + ').\nيُوزَّع على أقدم المصروفات أولاً:', g.lawyer_total); if (!v) return;
+  const note = prompt('ملاحظة (اختياري)', '') || '';
+  try { await api('/api/acc/remit', 'POST', {lawyer: g.lawyer, amt: v, note}); RPT = await api('/api/acc/report-unpaid'); unpaidReport(null); toast('تم تسجيل الدفعة ✔'); } catch (e) { alert(e.message); }
+}
+async function accLawyerPayExp(cid, id, left) {
+  const v = prompt('المبلغ الذي سدّده المحامي للمدير الآن', left); if (!v) return;
+  try { await api('/api/acc/expense-lawyer-pay/' + id, 'POST', {amt: v}); accDetail(cid); } catch (e) { alert(e.message); }
+}
+
+// ================= استعادة النسخ الاحتياطية =================
+async function restoreDlg() {
+  const L = await api('/api/backups'), dlg = $('#dlg'); dlg.style.width = 'min(780px,95vw)';
+  dlg.innerHTML = `<h2>♻️ استعادة نسخة احتياطية</h2><div class="body">
+   <p style="color:var(--bad)">تنبيه: الاستعادة تستبدل كل القضايا والجلسات والمهام والحسابات الحالية بمحتوى النسخة. تُحفظ تلقائياً نسخة من وضعك الحالي قبل الاستعادة، وحسابات المستخدمين تبقى كما هي.</p>
+   <div class="card"><h3>نسخ محفوظة على الخادم</h3>${L.length ? '<table><thead><tr><th>التاريخ</th><th>الملف</th><th>الحجم</th><th></th></tr></thead><tbody>' + L.map(b => `<tr><td>${esc(b.mtime)}</td><td dir="ltr">${esc(b.name)}</td><td>${Math.max(1, Math.round(b.size / 1024))} KB</td><td class="act"><button class="pri" onclick="restoreNamed('${esc(b.name)}')">استعادة</button><button onclick="location='/api/backups/${encodeURIComponent(b.name)}'">تنزيل</button></td></tr>`).join('') + '</tbody></table>' : '<div class="empty">لا توجد نسخ. استخدم زر «نسخة احتياطية» أولاً.</div>'}</div>
+   <div class="card"><h3>استعادة من ملف على جهازك</h3><div class="bar" style="padding:10px"><input type="file" id="rf" accept=".db"><button class="pri" onclick="restoreFile()">استعادة من الملف</button></div></div></div>
+   <div class="foot"><button onclick="$('#dlg').close()">إغلاق</button></div>`;
+  if (!dlg.open) { dlg.showModal(); dlg.addEventListener('close', () => dlg.style.width = '', {once: true}); }
+}
+const RS_MSG = 'سيتم استبدال كل البيانات الحالية بمحتوى النسخة. هل أنت متأكد؟';
+async function restoreNamed(name) {
+  if (!confirm(RS_MSG + '\n\n' + name)) return;
+  try { const r = await api('/api/restore/' + encodeURIComponent(name), 'POST', {}); alert('تمت الاستعادة.\nنسخة وضعك السابق: ' + r.safety); location.reload(); }
+  catch (e) { alert(e.message); }
+}
+async function restoreFile() {
+  const f = $('#rf').files[0]; if (!f) return alert('اختر ملف النسخة (.db) أولاً');
+  if (!confirm(RS_MSG + '\n\n' + f.name)) return;
+  try {
+    const r = await fetch('/api/restore-upload', {method: 'POST', headers: {'X-Requested-With': 'law'}, body: f}), j = await r.json();
+    if (!r.ok) throw new Error(j.error || 'فشلت الاستعادة');
+    alert('تمت الاستعادة.\nنسخة وضعك السابق: ' + j.safety); location.reload();
+  } catch (e) { alert(e.message); }
+}
+
+// ================= الحساب والصلاحيات والإشعارات =================
+let ME = null, CAN = {write: false, del: false, acc: false, admin: false};
+const b64u = s => Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(s.length / 4) * 4, '=')), c => c.charCodeAt(0));
+async function logout() { try { await api('/api/logout', 'POST', {}); } catch (e) {} location = '/login'; }
+async function notifBtn() {
+  try {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window))
+      return alert('هذا المتصفح لا يدعم الإشعارات. على الآيفون: افتح الموقع في Safari ثم مشاركة ← «إضافة إلى الشاشة الرئيسية»، وافتح التطبيق من الأيقونة.');
+    const k = await api('/api/push/key');
+    if (!k.key || !k.available) return alert('الإشعارات غير مفعّلة على الخادم (يلزم تثبيت pywebpush عبر install.bat).');
+    const reg = await navigator.serviceWorker.ready;
+    let sub = await reg.pushManager.getSubscription();
+    if (sub) {
+      if (confirm('الإشعارات مفعّلة على هذا الجهاز.\nموافق = إيقافها، إلغاء = إرسال إشعار تجريبي')) {
+        await api('/api/push/unsubscribe', 'POST', {endpoint: sub.endpoint}); await sub.unsubscribe(); toast('تم إيقاف الإشعارات');
+      } else await api('/api/push/test', 'POST', {});
+      return;
+    }
+    if (await Notification.requestPermission() !== 'granted') return alert('لم يُسمح بالإشعارات من إعدادات المتصفح.');
+    sub = await reg.pushManager.subscribe({userVisibleOnly: true, applicationServerKey: b64u(k.key)});
+    await api('/api/push/subscribe', 'POST', sub.toJSON()); toast('تم تفعيل الإشعارات ✔'); await api('/api/push/test', 'POST', {});
+  } catch (e) { alert('تعذّر تفعيل الإشعارات: ' + (e.message || e)); }
+}
+async function usersDlg() {
+  const us = await api('/api/users'), R = {admin: 'مدير', editor: 'موظف', viewer: 'مشاهدة فقط'};
+  const dlg = $('#dlg'); dlg.style.width = 'min(780px,95vw)';
+  dlg.innerHTML = `<h2>👥 المستخدمون</h2><div class="body"><div class="card"><table><thead><tr><th>المستخدم</th><th>الصلاحية</th><th>يرى الحسابات</th><th>الحالة</th><th></th></tr></thead><tbody>` +
+    us.map(u => `<tr><td>${esc(u.username)}</td><td>${R[u.role]}</td><td>${u.role === 'admin' ? '✔' : `<input type="checkbox" ${u.see_acc ? 'checked' : ''} onchange="userSet(${u.id},{see_acc:this.checked})">`}</td><td><span class="b ${u.active ? 'ok' : 'gray'}">${u.active ? 'فعّال' : 'موقوف'}</span></td><td class="act"><button onclick="userRole(${u.id})">الصلاحية</button><button onclick="userPw(${u.id})">كلمة المرور</button><button onclick="userSet(${u.id},{active:${!u.active}})">${u.active ? 'إيقاف' : 'تفعيل'}</button>${u.id === ME.id ? '' : `<button class="dng" onclick="userDel(${u.id})">🗑</button>`}</td></tr>`).join('') + `</tbody></table></div>
+   <div class="card"><h3>+ مستخدم جديد</h3><div class="bar" style="padding:10px"><input id="nu" placeholder="اسم المستخدم"><input id="npw" type="password" placeholder="كلمة المرور (8 أحرف+)"><select id="nr"><option value="editor">موظف — يعدّل القضايا والمهام</option><option value="viewer">مشاهدة فقط — لا يعدّل شيئاً</option><option value="admin">مدير — كل الصلاحيات</option></select><button class="pri" onclick="userAdd()">إضافة</button></div></div></div><div class="foot"><button onclick="$('#dlg').close()">إغلاق</button></div>`;
+  if (!dlg.open) { dlg.showModal(); dlg.addEventListener('close', () => dlg.style.width = '', {once: true}); }
+}
+async function userAdd() { try { await api('/api/users', 'POST', {username: $('#nu').value, password: $('#npw').value, role: $('#nr').value}); toast('تمت الإضافة ✔'); usersDlg(); } catch (e) { alert(e.message); } }
+async function userSet(id, d) { try { await api('/api/users/' + id, 'PUT', d); } catch (e) { alert(e.message); } usersDlg(); }
+async function userRole(id) { const v = prompt('اكتب رقم الصلاحية:\n1 = مدير (كل الصلاحيات)\n2 = موظف (يعدّل القضايا والمهام)\n3 = مشاهدة فقط'); const r = {1: 'admin', 2: 'editor', 3: 'viewer'}[(v || '').trim()]; if (r) userSet(id, {role: r}); }
+async function userPw(id) { const v = prompt('كلمة المرور الجديدة (8 أحرف على الأقل):'); if (v) { await userSet(id, {password: v}); toast('تم تغيير كلمة المرور'); } }
+async function userDel(id) { if (!confirm('حذف هذا المستخدم؟')) return; try { await api('/api/users/' + id, 'DELETE'); } catch (e) { alert(e.message); } usersDlg(); }
+
+// ================= الحسابات =================
+let AS = {cur: 'د.ك', office: ''}, ACC = {q: '', f: 'active', d: null, list: []};
+const N = v => Number(v) || 0;
+const fm = n => N(n).toLocaleString('en-US', {maximumFractionDigits: 3});
+const money = n => fm(n) + ' ' + esc(AS.cur);
+const isoOf = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+const todayIso = () => isoOf(new Date());
+const stat = (l, v, c = '') => `<div class="stat ${c}"><b style="font-size:22px">${v}</b><span>${l}</span></div>`;
+function accStats(t, short) {
+  return '<div class="stats">' + (short ? '' : stat('عدد العقود', t.contracts) + stat('إجمالي العقود', money(t.total)) + stat('إجمالي المسدد', money(t.paid))) +
+    stat('المتبقي على الموكلين', money(t.remaining), 'bad') + (short ? '' : stat('مصروفات مستحقة على الموكلين', money(t.exp_due)) + stat('مستحق للمدير على المحامين', money(t.lawyer_due), 'bad')) +
+    stat('المدفوع هذا الشهر', money(t.month)) + stat('المدفوع الشهر الماضي', money(t.prev_month)) + '</div>';
+}
+async function renderAccounts() {
+  const [t, list, st] = await Promise.all([CAN.admin ? api('/api/acc/totals') : null, api('/api/acc/list'), api('/api/acc/settings')]);
+  AS = st; ACC.list = list;
+  $('#main').innerHTML = (t ? accStats(t) : '') + `<div class="bar"><input type="search" placeholder="بحث بالاسم أو رقم القضية أو الهاتف..." value="${esc(ACC.q)}" oninput="ACC.q=this.value;drawAcc()">
+    <select onchange="ACC.f=this.value;drawAcc()"><option value="active" ${ACC.f === 'active' ? 'selected' : ''}>القضايا التي لها حسابات</option><option value="all" ${ACC.f === 'all' ? 'selected' : ''}>كل القضايا</option></select>
+    <button class="accw" onclick="unpaidReport()">📋 المصروفات غير المسددة (حسب المحامي)</button><button class="accw" onclick="accSettings()">إعدادات السند</button><button class="accw" onclick="$('#accfile').click()">استيراد من برنامج الحسابات القديم (.db أو .json)</button>
+    <input type="file" id="accfile" accept=".json,.db" hidden onchange="accImport(this)"></div><div class="card" id="tbl"></div>`;
+  drawAcc();
+}
+function drawAcc() {
+  const q = ACC.q.trim();
+  let rows = ACC.list.filter(r => ACC.f === 'all' || r.active);
+  if (q) rows = rows.filter(r => [r.code, r.client, r.case_no, r.phone].some(v => String(v ?? '').includes(q)));
+  $('#tbl').innerHTML = rows.length ? '<table><thead><tr><th>الكود</th><th>الموكل</th><th>رقم القضية</th><th>قيمة العقد</th><th>المسدد</th><th>المتبقي</th><th>مصروفات مستحقة</th></tr></thead><tbody>' +
+    rows.map(r => `<tr><td>${esc(r.code)}</td><td><a class="lnk" onclick="accDetail(${r.case_id})">${esc(r.client)}</a></td><td>${esc(r.case_no)}</td><td>${r.has_contract ? fm(r.total) + (r.n_contracts > 1 ? ` <span class="cnt">${r.n_contracts} عقود</span>` : '') : '—'}</td><td>${fm(r.paid)}</td><td>${r.has_contract ? `<span class="b ${r.remaining > 0.0005 ? 'bad' : 'ok'}">${fm(r.remaining)}</span>` : '—'}</td><td>${r.exp_due > 0.0005 ? `<span class="b warn">${fm(r.exp_due)}</span>` : fm(r.exp_due)}</td></tr>`).join('') + '</tbody></table>'
+    : '<div class="empty">لا توجد حسابات. اختر «كل القضايا» ثم افتح القضية وأضف لها عقداً.</div>';
+}
+function sched(k, P) {
+  const m = N(k.monthly), t = N(k.total); if (!m || !t) return [];
+  const cnt = N(k.cnt) || Math.ceil(t / m), out = []; let cum = 0;
+  for (let i = 0; i < cnt; i++) {
+    const prev = cum; cum = i === cnt - 1 ? t : Math.min(t, m * (i + 1)); if (cum <= prev) break;
+    const d = new Date((k.start || todayIso()) + 'T00:00:00'); d.setMonth(d.getMonth() + i); const ds = isoOf(d);
+    let s = ['قادم', 'gray']; if (P >= cum - 0.0005) s = ['مسدد', 'ok']; else if (P > prev + 0.0005) s = ['جزئي', 'warn']; else if (ds < todayIso()) s = ['متأخر', 'bad'];
+    out.push({i: i + 1, ds, amt: cum - prev, s});
+  }
+  return out;
+}
+const ktitle = (k, i) => k.title || 'عقد ' + (i + 1);
+async function accDetail(cid) {
+  const [d, st] = await Promise.all([api('/api/acc/case/' + cid), api('/api/acc/settings')]);
+  AS = st; ACC.d = d;
+  const K = d.contracts, P = d.payments, paid = P.reduce((a, p) => a + N(p.amt), 0), total = K.reduce((a, k) => a + N(k.total), 0), rem = total - paid;
+  const exDue = d.expenses.reduce((a, e) => a + N(e.amt) - N(e.paid), 0), exLDue = d.expenses.reduce((a, e) => a + N(e.amt) - N(e.lawyer_paid), 0);
+  const kname = id => { const i = K.findIndex(x => x.id === id); return i < 0 ? '—' : esc(ktitle(K[i], i)); };
+  const kcard = (k, i) => {
+    const kp = N(k.paid), kr = N(k.total) - kp, sc = sched(k, kp);
+    return `<div class="card"><h3>📄 ${esc(ktitle(k, i))}</h3><div class="body" style="padding:10px 14px">
+     <div class="stats">${stat('قيمة العقد', money(k.total))}${stat('القسط الشهري', money(k.monthly))}${stat('المسدد', money(kp))}${stat('المتبقي', money(kr), kr > 0.0005 ? 'bad' : '')}</div>
+     <div class="np accw"><button onclick="accContract(${d.case.id},${k.id})">تعديل العقد</button><button class="dng" onclick="accDelContract(${d.case.id},${k.id})">حذف العقد</button></div>
+     ${sc.length ? `<div class="np"><button onclick="const d=this.nextElementSibling;d.classList.toggle('hid');this.textContent=d.classList.contains('hid')?'📅 إظهار جدول الأقساط':'📅 إخفاء جدول الأقساط'">📅 إظهار جدول الأقساط</button><div class="sch hid">` + '<table><thead><tr><th>القسط</th><th>الاستحقاق</th><th>المبلغ</th><th>الحالة</th></tr></thead><tbody>' + sc.map(r => `<tr><td>${r.i}</td><td>${fmt(r.ds)}</td><td>${fm(r.amt)}</td><td><span class="b ${r.s[1]}">${r.s[0]}</span></td></tr>`).join('') + '</tbody></table>' + `</div></div>` : ''}</div></div>`;
+  };
+  const dlg = $('#dlg'); dlg.style.width = 'min(900px,95vw)';
+  dlg.innerHTML = `<h2>💰 ${esc(d.case.client)} ${d.case.case_no ? '— ' + esc(d.case.case_no) : ''} ${d.case.phone ? '— 📞 ' + esc(d.case.phone) : ''}</h2><div class="body">
+  <div class="stats">${stat('عدد العقود', K.length)}${stat('إجمالي العقود', K.length ? money(total) : '—')}${stat('المسدد', money(paid))}${stat('المتبقي', K.length ? money(rem) : '—', rem > 0.0005 ? 'bad' : '')}</div>
+  <div class="np accw"><button class="pri" onclick="accContract(${cid})">+ إضافة عقد</button></div>
+  ${K.map(kcard).join('')}
+  <div class="card"><h3>الدفعات المسددة</h3>
+   <div class="bar np" style="padding:10px 12px;margin:0">${K.length ? `<select id="pc">${K.map((k, i) => `<option value="${k.id}">${esc(ktitle(k, i))}</option>`).join('')}</select>` : ''}<input type="date" id="pd" value="${todayIso()}"><input type="number" step="any" min="0" id="pa" placeholder="المبلغ" style="width:120px"><input id="pn" placeholder="ملاحظة (اختياري)"><button class="pri" onclick="accAddPay(${cid})">+ إضافة دفعة وإصدار سند</button></div>
+   ${P.length ? '<table><thead><tr><th>رقم السند</th><th>التاريخ</th><th>العقد</th><th>المبلغ</th><th>ملاحظة</th><th></th></tr></thead><tbody>' + P.map(p => `<tr><td>${p.rcpt_no || ''}</td><td>${fmt(p.date)}</td><td>${kname(p.contract_id)}</td><td>${fm(p.amt)}</td><td>${esc(p.note)}</td><td class="act"><button onclick="receipt(${p.id})">سند</button><button class="dng" onclick="accDelPay(${cid},${p.id})">🗑</button></td></tr>`).join('') + '</tbody></table>' : '<div class="empty">لا توجد دفعات بعد.</div>'}</div>
+  <div class="card"><h3>المصروفات القضائية <span class="cnt">على الموكل: ${money(exDue)} — على المحامي للمدير: ${money(exLDue)}</span></h3>
+   <div class="bar np" style="padding:10px 12px;margin:0"><input id="ed" placeholder="البيان (رسوم محكمة، خبير، إعلان...)"><input type="number" step="any" min="0" id="ea" placeholder="المبلغ" style="width:110px"><input type="number" step="any" min="0" id="ep" placeholder="سدّده الموكل" value="0" style="width:110px"><button class="pri" onclick="accAddExp(${cid})">+ إضافة مصروف</button></div>
+   ${d.expenses.length ? '<table><thead><tr><th>التاريخ</th><th>البيان</th><th>المبلغ</th><th>سدّده الموكل</th><th>على الموكل</th><th>سدّده المحامي للمدير</th><th>على المحامي</th><th></th></tr></thead><tbody>' + d.expenses.map(e => { const l = N(e.amt) - N(e.paid), ll = N(e.amt) - N(e.lawyer_paid); return `<tr><td>${fmt(e.date)}</td><td>${esc(e.descr)}</td><td>${fm(e.amt)}</td><td>${fm(e.paid)}</td><td><span class="b ${l > 0.0005 ? 'bad' : 'ok'}">${fm(l)}</span></td><td>${fm(e.lawyer_paid)}</td><td><span class="b ${ll > 0.0005 ? 'warn' : 'ok'}">${fm(ll)}</span></td><td class="act">${l > 0.0005 ? `<button class="accw" onclick="accPayExp(${cid},${e.id},${l})">سداد الموكل</button>` : ''}${ll > 0.0005 ? `<button class="accw" onclick="accLawyerPayExp(${cid},${e.id},${ll})">سداد المحامي</button>` : ''}<button class="dng" onclick="accDelExp(${cid},${e.id})">🗑</button></td></tr>`; }).join('') + '</tbody></table>' : '<div class="empty">لا توجد مصروفات مسجلة.</div>'}</div>
+  </div><div class="foot"><button class="pri" onclick="printDlg()">طباعة كشف الحساب</button><button onclick="$('#dlg').close();render()">إغلاق</button></div>`;
+  if (!dlg.open) { dlg.showModal(); dlg.addEventListener('close', () => dlg.style.width = '', {once: true}); }
+}
+function accContract(cid, kid) {
+  const k = kid ? ACC.d.contracts.find(x => x.id === kid) : {};
+  $('#dlg').innerHTML = `<h2>${kid ? 'تعديل العقد' : 'عقد جديد'} — ${esc(ACC.d.case.client)}</h2><div class="body">
+   <label>اسم العقد (مثال: عقد الدرجة الأولى، عقد الاستئناف)<input id="kn" value="${esc(k.title || '')}"></label>
+   <label>قيمة العقد الإجمالية<input type="number" step="any" min="0" id="kt" value="${esc(k.total ?? '')}"></label>
+   <label>القسط الشهري<input type="number" step="any" min="0" id="km" value="${esc(k.monthly ?? '')}"></label>
+   <label>عدد الأقساط (اختياري)<input type="number" min="0" id="kc" value="${esc(k.cnt || '')}"></label>
+   <label>تاريخ أول قسط<input type="date" id="ks" value="${esc(k.start || todayIso())}"></label><div class="err" id="err"></div></div>
+   <div class="foot"><button class="pri" onclick="accSaveContract(${cid},${kid || 0})">حفظ</button><button onclick="accDetail(${cid})">رجوع</button></div>`;
+}
+async function accSaveContract(cid, kid) {
+  const b = {title: $('#kn').value, total: $('#kt').value, monthly: $('#km').value, count: $('#kc').value, start: $('#ks').value};
+  try { if (kid) await api('/api/acc/contract/' + kid, 'PUT', b); else await api('/api/acc/contract-new/' + cid, 'POST', b); toast('تم الحفظ ✔'); accDetail(cid); }
+  catch (e) { $('#err').textContent = e.message; }
+}
+async function accDelContract(cid, kid) {
+  if (!confirm('حذف هذا العقد؟ (لا يُحذف إن كانت له دفعات)')) return;
+  try { await api('/api/acc/contract/' + kid, 'DELETE'); } catch (e) { alert(e.message); }
+  accDetail(cid);
+}
+async function accAddPay(cid) {
+  try { const r = await api('/api/acc/payment/' + cid, 'POST', {contract_id: $('#pc') ? $('#pc').value : null, date: $('#pd').value, amt: $('#pa').value, note: $('#pn').value}); await accDetail(cid); receipt(r.id); }
+  catch (e) { alert(e.message); }
+}
+async function accDelPay(cid, id) { if (!confirm('حذف هذه الدفعة؟ سيُلغى سندها أيضاً.')) return; await api('/api/acc/payment/' + id, 'DELETE'); accDetail(cid); }
+async function accAddExp(cid) {
+  try { await api('/api/acc/expense/' + cid, 'POST', {descr: $('#ed').value, amt: $('#ea').value, paid: $('#ep').value}); accDetail(cid); }
+  catch (e) { alert(e.message); }
+}
+async function accPayExp(cid, id, left) {
+  const v = prompt('المبلغ المدفوع الآن', left); if (!v) return;
+  try { await api('/api/acc/expense-pay/' + id, 'POST', {amt: v}); accDetail(cid); } catch (e) { alert(e.message); }
+}
+async function accDelExp(cid, id) { if (!confirm('حذف هذا المصروف؟')) return; await api('/api/acc/expense/' + id, 'DELETE'); accDetail(cid); }
+function receipt(pid) {
+  const d = ACC.d, c = d.case, p = d.payments.find(x => x.id === pid); if (!p) return;
+  const i = d.contracts.findIndex(x => x.id === p.contract_id), k = i < 0 ? null : d.contracts[i], total = k ? N(k.total) : 0;
+  const cum = k ? d.payments.filter(x => x.contract_id === k.id && (x.date < p.date || (x.date === p.date && x.rcpt_no <= p.rcpt_no))).reduce((t, x) => t + N(x.amt), 0) : 0;
+  const row = (a, b) => `<tr><td class="lbl">${a}</td><td>${b}</td></tr>`;
+  $('#dlg').innerHTML = `<div class="body"><div style="text-align:center"><div style="font-size:19px;font-weight:700">${esc(AS.office || 'مكتب المحاماة')}</div><h2 style="background:none;padding:6px 0">سند قبض</h2></div>
+   <div style="display:flex;justify-content:space-between"><span>رقم السند: <b>${p.rcpt_no}</b></span><span>التاريخ: <b>${fmt(p.date)}</b></span></div>
+   <table class="rc">${row('استلمنا من', esc(c.client))}${row('مبلغ وقدره', `<b>${money(p.amt)}</b>`)}${row('وذلك عن', esc(p.note || ('دفعة من أتعاب ' + (k ? ktitle(k, i) : 'العقد'))) + (c.case_no ? ' - القضية: ' + esc(c.case_no) : ''))}${k ? row('العقد', esc(ktitle(k, i))) + row('قيمة العقد', money(total)) + row('إجمالي المسدد من هذا العقد حتى تاريخه', money(cum)) + row('المتبقي من هذا العقد بعد هذه الدفعة', money(total - cum)) : ''}</table>
+   <div style="display:flex;justify-content:space-between;margin-top:34px"><span>توقيع المستلم: ..............</span><span>توقيع الموكل: ..............</span></div></div>
+   <div class="foot"><button class="pri" onclick="printDlg()">طباعة السند</button><button onclick="accDetail(${c.id})">رجوع</button></div>`;
+}
+function printDlg() { document.body.classList.add('pr'); window.print(); document.body.classList.remove('pr'); }
+function accSettings() {
+  const dlg = $('#dlg'); dlg.style.width = '';
+  dlg.innerHTML = `<h2>إعدادات الحسابات والسند</h2><div class="body"><label>اسم المكتب (يظهر أعلى السند)<input id="so" value="${esc(AS.office)}"></label><label>العملة<input id="sc" value="${esc(AS.cur)}"></label></div>
+   <div class="foot"><button class="pri" onclick="accSaveSettings()">حفظ</button><button onclick="$('#dlg').close()">إلغاء</button></div>`;
+  dlg.showModal();
+}
+async function accSaveSettings() { AS = await api('/api/acc/settings', 'PUT', {office: $('#so').value, cur: $('#sc').value}); $('#dlg').close(); toast('تم الحفظ ✔'); render(); }
+async function accImport(inp) {
+  const f = inp.files[0]; if (!f) return;
+  try { let j;
+    if (/\.json$/i.test(f.name)) j = await api('/api/acc/import-json', 'POST', JSON.parse(await f.text()));
+    else { const r = await fetch('/api/acc/import-db', {method: 'POST', headers: {'X-Requested-With': 'law'}, body: f}); j = await r.json(); if (!r.ok) throw new Error(j.error || 'فشل الاستيراد'); }
+    alert(j.text); render(); } catch (e) { alert(e.message || 'ملف غير صالح'); }
+  inp.value = '';
+}
+
+async function doImport(inp) {
+  const f = inp.files[0]; if (!f) return;
+  const fd = new FormData(); fd.append('file', f);
+  try {
+    const r = await fetch('/api/import', {method: 'POST', headers: {'X-Requested-With':'law'}, body: fd}), j = await r.json();
+    if (!r.ok) throw new Error(j.error);
+    alert('تم الاستيراد\n' + (j.text || 'لا يوجد جديد')); render();
+  } catch (e) { alert(e.message); }
+  inp.value = '';
+}
+async function doBackup() { const j = await api('/api/backup', 'POST'); toast('تم حفظ نسخة احتياطية'); }
+
+(async () => {
+  try { ME = await api('/api/me'); } catch (e) { return; }
+  CAN = ME.can; document.body.classList.toggle('is-admin', CAN.admin); $('#who').textContent = '👤 ' + ME.username;
+  const i = TABS.findIndex(t => t[0] === 'accounts'); if (!CAN.acc && i >= 0) TABS.splice(i, 1);
+  S = await api('/api/schema'); if (CAN.acc) AS = await api('/api/acc/settings');
+  const h = location.hash.slice(1); if (TABS.some(t => t[0] === h)) TAB = h;
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
+  render();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1"><title>تسجيل الدخول</title>
+<link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#1f4e8c">
+<style>*{box-sizing:border-box}body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f3f5f9;font:16px "Segoe UI",Tahoma,Arial,sans-serif;color:#1b2333}
+.c{background:#fff;border:1px solid #e2e6ee;border-radius:14px;padding:26px;width:min(380px,92vw)}h1{margin:0 0 4px;font-size:21px;text-align:center}p{color:#6a7488;text-align:center;margin:0 0 16px}
+input{width:100%;padding:10px;margin:6px 0 12px;border:1px solid #cfd6e3;border-radius:8px;font:inherit}button{width:100%;padding:11px;border:0;border-radius:8px;background:#1f4e8c;color:#fff;font:inherit;cursor:pointer}
+.e{color:#c62f3a;min-height:22px;text-align:center}</style></head><body><div class="c"><h1>⚖️ متابعة القضايا</h1><p id="t">تسجيل الدخول</p>
+<div id="f"></div><div class="e" id="e"></div></div>
+<script>
+const $=s=>document.querySelector(s),H={'Content-Type':'application/json','X-Requested-With':'law'};
+async function post(u,b){const r=await fetch(u,{method:'POST',headers:H,body:JSON.stringify(b)});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||'حدث خطأ');return j}
+(async()=>{const s=await (await fetch('/api/auth-state')).json();
+ if(s.need_setup&&!s.can_setup){$('#t').textContent='لم يُنشأ حساب المدير بعد';$('#f').innerHTML='<p>افتح التطبيق من الكمبيوتر الذي يعمل عليه البرنامج (http://127.0.0.1:8765) لإنشاء حساب المدير أولاً.</p>';return}
+ const setup=s.need_setup;$('#t').textContent=setup?'إنشاء حساب المدير (مرة واحدة)':'تسجيل الدخول';
+ $('#f').innerHTML='<input id="u" placeholder="اسم المستخدم" autocomplete="username" autofocus><input id="p" type="password" placeholder="كلمة المرور'+(setup?' (8 أحرف على الأقل)':'')+'" autocomplete="'+(setup?'new':'current')+'-password"><button id="b">'+(setup?'إنشاء الحساب':'دخول')+'</button>';
+ const go=async()=>{try{await post(setup?'/api/setup':'/api/login',{username:$('#u').value,password:$('#p').value});location='/'}catch(x){$('#e').textContent=x.message}};
+ $('#b').onclick=go;$('#p').onkeydown=e=>{if(e.key==='Enter')go()}})();
+</script></body></html>
